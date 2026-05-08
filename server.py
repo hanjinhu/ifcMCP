@@ -193,6 +193,6 @@ def get_space_boundaries(file_path:str, globalId:str):
     return results
 
 if __name__ == '__main__':
-    #mcp.run(transport="stdio")  # Default, so transport argument is optional
-    mcp.run(transport="streamable-http") # default port 8000, access streamable-http mcp server via http://127.0.01:8000/mcp
+    mcp.run(transport="stdio")  # Default, so transport argument is optional
+    #mcp.run(transport="streamable-http") # default port 8000, access streamable-http mcp server via http://127.0.01:8000/mcp
     #mcp.run(transport="sse")
