@@ -1,0 +1,14 @@
+"ifcMCP": {
+    "autoApprove": [],
+    "disabled": false,
+    "timeout": 60,
+    "type": "stdio",
+    "command": "D:\\Repos\\ifcMCP\\.venv\\Scripts\\python.exe",
+    "args": [
+    "D:\\Repos\\ifcMCP\\server.py",
+    "run"
+    ],
+    "env": {
+    "PYTHONPATH": "D:\\Repos\\ifcMCP"
+    }
+}
