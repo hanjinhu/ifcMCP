@@ -389,6 +389,79 @@ def assign_ifc_aggregation(
     except Exception as exc:
         return f"error, failed to assign IFC aggregation: {exc}"
 
+@mcp.tool()
+def create_ifc_bearing(
+    file_path:str,
+    relating_structure_globalId:str,
+    name:str="PierG1Bearing",
+    predefined_type:str="ELASTOMERIC",
+    coordinates:list[float]=[0.0, 0.0, 0.0]
+):
+    """
+    Create an IfcBearing entity, place it, and attach it to a structure.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        relating_structure_globalId: GlobalId of the containing structure, such as a pier bridge part
+        name: bearing name
+        predefined_type: bearing predefined type
+        coordinates: local placement coordinates [x, y, z]
+    """
+    try:
+        return ifc_util.create_ifc_bearing(
+            file_path,
+            relating_structure_globalId=relating_structure_globalId,
+            name=name,
+            predefined_type=predefined_type,
+            coordinates=coordinates
+        )
+    except Exception as exc:
+        return f"error, failed to create IfcBearing: {exc}"
+
+@mcp.tool()
+def create_bearing_shape_representation(
+    file_path:str,
+    bearing_globalId:str,
+    is_rectangular:bool,
+    length:float,
+    width:float,
+    thickness:float,
+    has_hole:bool=False,
+    hole_diameter:float=0.0,
+    profile_name:str="bearing pad profile",
+    representation_identifier:str="Body"
+):
+    """
+    Create and assign a profile-based shape representation to an IfcBearing.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        bearing_globalId: GlobalId of the IfcBearing entity
+        is_rectangular: whether the outer profile is rectangular
+        length: pad length or diameter in inches
+        width: pad width in inches for rectangular pads
+        thickness: pad thickness in inches
+        has_hole: whether the pad contains a circular hole
+        hole_diameter: circular hole diameter in inches
+        profile_name: profile name stored in the IFC representation
+        representation_identifier: preferred representation identifier, usually "Body"
+    """
+    try:
+        return ifc_util.create_bearing_shape_representation(
+            file_path,
+            bearing_globalId=bearing_globalId,
+            is_rectangular=is_rectangular,
+            length=length,
+            width=width,
+            thickness=thickness,
+            has_hole=has_hole,
+            hole_diameter=hole_diameter,
+            profile_name=profile_name,
+            representation_identifier=representation_identifier
+        )
+    except Exception as exc:
+        return f"error, failed to create bearing shape representation: {exc}"
+
 
 if __name__ == '__main__':
     mcp.run(transport="stdio")  # Default, so transport argument is optional

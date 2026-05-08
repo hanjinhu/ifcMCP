@@ -26,6 +26,8 @@ An MCP server that enables LLM agents to talk with IFC (Industry Foundation Clas
 14. create_ifc_bridge
 15. create_ifc_bridge_part
 16. assign_ifc_aggregation
+17. create_ifc_bearing
+18. create_bearing_shape_representation
 
 # creation tools
 All model creation and update tools are file-based. They do not pass a live Python `model` object between MCP calls. Instead, each tool accepts a `file_path`, reopens the IFC file, updates it, and writes it back.
@@ -39,6 +41,8 @@ All model creation and update tools are file-based. They do not pass a live Pyth
 7. `create_ifc_bridge`: create an `IfcBridge` entity
 8. `create_ifc_bridge_part`: create an `IfcBridgePart` such as `SUBSTRUCTURE` or `PIER`
 9. `assign_ifc_aggregation`: connect parent-child hierarchy by GlobalId
+10. `create_ifc_bearing`: create an `IfcBearing`, place it, and attach it to a structure
+11. `create_bearing_shape_representation`: create and assign profile-based geometry to a bearing
 
 # how to use it
 1. clone this repo

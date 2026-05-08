@@ -5,12 +5,16 @@
 from pathlib import Path
 
 import numpy as np
+import ifcopenshell
 import ifcopenshell as ios
 import ifcopenshell.api.aggregate
 import ifcopenshell.api.context
+import ifcopenshell.api.geometry
 import ifcopenshell.api.root
+import ifcopenshell.api.spatial
 import ifcopenshell.api.unit
 import ifcopenshell.geom as igm
+import ifcopenshell.util.shape_builder
 
 #==========Util Functions for Geometric Properties============
 # @Shilpa what's shown in your screenshot is not the coordinates of a vertex. It is the coordinates of the object placement. This can be done with one line of code using ifcopenshell.util.placement.get_local_placement(element.ObjectPlacement). This will give you a matrix which includes that location in absolute coordinates.
@@ -329,4 +333,122 @@ def assign_ifc_aggregation(file_path, parent_globalId, child_globalIds):
         'file_path': str(output_path),
         'parent_globalId': parent_globalId,
         'child_globalIds': child_globalIds
+    }
+
+def create_ifc_bearing(file_path, relating_structure_globalId, name='PierG1Bearing', predefined_type='ELASTOMERIC', coordinates=None):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    relating_structure=model.by_guid(relating_structure_globalId)
+    if relating_structure is None:
+        raise ValueError(f'relating structure with GlobalId {relating_structure_globalId} is not found')
+
+    if coordinates is None:
+        coordinates=[0.0, 0.0, 0.0]
+    if len(coordinates)!=3:
+        raise ValueError('coordinates must contain exactly three values')
+
+    bearing=ifcopenshell.api.root.create_entity(
+        model,
+        ifc_class='IfcBearing',
+        name=name,
+        predefined_type=predefined_type
+    )
+
+    ifcopenshell.api.aggregate.assign_object(model, relating_object=relating_structure, products=[bearing])
+
+    placement_matrix=np.eye(4)
+    placement_matrix[:,3][0:3]=coordinates
+    ifcopenshell.api.geometry.edit_object_placement(model, product=bearing, matrix=placement_matrix)
+    ifcopenshell.api.spatial.assign_container(model, products=[bearing], relating_structure=relating_structure)
+
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'globalId': bearing.GlobalId,
+        'name': bearing.Name,
+        'type': bearing.is_a(),
+        'predefined_type': predefined_type,
+        'coordinates': coordinates,
+        'relating_structure_globalId': relating_structure_globalId
+    }
+
+def create_bearing_shape_representation(
+    file_path,
+    bearing_globalId,
+    is_rectangular,
+    length,
+    width,
+    thickness,
+    has_hole=False,
+    hole_diameter=0.0,
+    profile_name='bearing pad profile',
+    representation_identifier='Body'
+):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    bearing=model.by_guid(bearing_globalId)
+    if bearing is None:
+        raise ValueError(f'bearing with GlobalId {bearing_globalId} is not found')
+
+    builder=ifcopenshell.util.shape_builder.ShapeBuilder(model)
+
+    if is_rectangular:
+        outer_curve=builder.polyline([
+            (width/2.0, length/2.0),
+            (width/2.0, -length/2.0),
+            (-width/2.0, -length/2.0),
+            (-width/2.0, length/2.0)
+        ], closed=True)
+    else:
+        outer_curve=builder.circle((0.0, 0.0), radius=length/2.0)
+
+    if has_hole:
+        inner_curve=builder.circle((0.0, 0.0), radius=hole_diameter/2.0)
+        profile=builder.profile(outer_curve, inner_curves=[inner_curve], name=profile_name)
+    else:
+        profile=builder.profile(outer_curve, name=profile_name)
+
+    context=None
+    for item in model.by_type('IfcGeometricRepresentationSubContext'):
+        if item.ContextIdentifier==representation_identifier:
+            context=item
+            break
+    if context is None:
+        contexts=model.by_type('IfcGeometricRepresentationContext')
+        if len(contexts)==0:
+            raise ValueError('geometric representation context is not found')
+        context=contexts[0]
+
+    profile_representation=ifcopenshell.api.geometry.add_profile_representation(
+        model,
+        context=context,
+        profile=profile,
+        depth=thickness * 0.0254
+    )
+    profile_representation.RepresentationIdentifier=representation_identifier
+
+    ifcopenshell.api.geometry.assign_representation(
+        model,
+        product=bearing,
+        representation=profile_representation
+    )
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'bearing_globalId': bearing_globalId,
+        'representation_identifier': representation_identifier,
+        'is_rectangular': is_rectangular,
+        'length': length,
+        'width': width,
+        'thickness': thickness,
+        'has_hole': has_hole,
+        'hole_diameter': hole_diameter
     }
