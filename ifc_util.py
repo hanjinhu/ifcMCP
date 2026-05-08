@@ -2,6 +2,8 @@
 # date: Jan 08, 2014
 # site: https://linjiarui.net
 
+from pathlib import Path
+
 import numpy as np
 import ifcopenshell as ios
 import ifcopenshell.geom as igm
@@ -143,3 +145,21 @@ def get_elements_in_spatial(ifc_spatial):
 def open_ifc(file_path):
     #print('ifc_util called')
     return ios.open(file_path)
+
+def create_ifc_model(file_path, schema='IFC4X3', author='AI', organization='Michael Baker International', originating_system='ifcMCP'):
+    output_path=Path(file_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    model=ios.file(schema=schema)
+    model.header.file_description.description=['ViewDefinition [Alignment-basedView]']
+    model.header.file_name.name=output_path.name
+    model.header.file_name.author=[author]
+    model.header.file_name.organization=[organization]
+    model.header.file_name.originating_system=originating_system
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'schema': schema,
+        'file_name': output_path.name
+    }

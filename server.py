@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
+import ifc_util
 from ifc_util import *
 
 mcp=FastMCP("ifcMCP")
@@ -191,6 +192,37 @@ def get_space_boundaries(file_path:str, globalId:str):
                     'name':ele.Name
                 })
     return results
+
+
+@mcp.tool()
+def create_ifc_model(
+    output_file_path:str,
+    schema:str="IFC4X3",
+    author:str="AI",
+    organization:str="Michael Baker International",
+    originating_system:str="ifcMCP"
+):
+    """
+    Create a new IFC model file with initialized header metadata.
+
+    Parameters:
+        output_file_path: path to the IFC file to create
+        schema: IFC schema to use (e.g., "IFC4X3")
+        author: author written into the IFC header
+        organization: organization written into the IFC header
+        originating_system: originating system written into the IFC header
+    """
+    try:
+        return ifc_util.create_ifc_model(
+            output_file_path,
+            schema=schema,
+            author=author,
+            organization=organization,
+            originating_system=originating_system
+        )
+    except Exception as exc:
+        return f"error, failed to create IFC model: {exc}"
+
 
 if __name__ == '__main__':
     mcp.run(transport="stdio")  # Default, so transport argument is optional
