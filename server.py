@@ -224,6 +224,23 @@ def create_ifc_model(
         return f"error, failed to create IFC model: {exc}"
 
 @mcp.tool()
+def create_ifc_project(
+    file_path:str,
+    name:str="Sample Project"
+):
+    """
+    Create an IfcProject entity in an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        name: project name
+    """
+    try:
+        return ifc_util.create_ifc_project(file_path, name=name)
+    except Exception as exc:
+        return f"error, failed to create IfcProject: {exc}"
+
+@mcp.tool()
 def set_ifc_units(
     file_path:str,
     length_unit_name:str="inch",
@@ -245,6 +262,132 @@ def set_ifc_units(
         )
     except Exception as exc:
         return f"error, failed to set IFC units: {exc}"
+
+@mcp.tool()
+def create_model_context(
+    file_path:str,
+    context_type:str="Model"
+):
+    """
+    Create a top-level geometric representation context in an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        context_type: context type to create
+    """
+    try:
+        return ifc_util.create_model_context(file_path, context_type=context_type)
+    except Exception as exc:
+        return f"error, failed to create model context: {exc}"
+
+@mcp.tool()
+def create_body_context(
+    file_path:str,
+    parent_context_type:str="Model",
+    context_identifier:str="Body",
+    target_view:str="MODEL_VIEW"
+):
+    """
+    Create a body subcontext under an existing geometric representation context.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        parent_context_type: parent context type to attach to
+        context_identifier: subcontext identifier
+        target_view: target view for the subcontext
+    """
+    try:
+        return ifc_util.create_body_context(
+            file_path,
+            parent_context_type=parent_context_type,
+            context_identifier=context_identifier,
+            target_view=target_view
+        )
+    except Exception as exc:
+        return f"error, failed to create body context: {exc}"
+
+@mcp.tool()
+def create_ifc_site(
+    file_path:str,
+    name:str="Project Site"
+):
+    """
+    Create an IfcSite entity in an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        name: site name
+    """
+    try:
+        return ifc_util.create_ifc_site(file_path, name=name)
+    except Exception as exc:
+        return f"error, failed to create IfcSite: {exc}"
+
+@mcp.tool()
+def create_ifc_bridge(
+    file_path:str,
+    name:str="Sample Bridge"
+):
+    """
+    Create an IfcBridge entity in an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        name: bridge name
+    """
+    try:
+        return ifc_util.create_ifc_bridge(file_path, name=name)
+    except Exception as exc:
+        return f"error, failed to create IfcBridge: {exc}"
+
+@mcp.tool()
+def create_ifc_bridge_part(
+    file_path:str,
+    predefined_type:str,
+    name:str,
+    usage_type:str="NOTDEFINED"
+):
+    """
+    Create an IfcBridgePart entity in an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        predefined_type: IfcBridgePart predefined type (e.g., "SUBSTRUCTURE", "PIER")
+        name: bridge part name
+        usage_type: bridge part usage type
+    """
+    try:
+        return ifc_util.create_ifc_bridge_part(
+            file_path,
+            predefined_type=predefined_type,
+            name=name,
+            usage_type=usage_type
+        )
+    except Exception as exc:
+        return f"error, failed to create IfcBridgePart: {exc}"
+
+@mcp.tool()
+def assign_ifc_aggregation(
+    file_path:str,
+    parent_globalId:str,
+    child_globalIds:list[str]
+):
+    """
+    Assign one or more IFC entities as aggregated children of a parent entity.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        parent_globalId: GlobalId of the parent IFC entity
+        child_globalIds: GlobalIds of the child IFC entities
+    """
+    try:
+        return ifc_util.assign_ifc_aggregation(
+            file_path,
+            parent_globalId=parent_globalId,
+            child_globalIds=child_globalIds
+        )
+    except Exception as exc:
+        return f"error, failed to assign IFC aggregation: {exc}"
 
 
 if __name__ == '__main__':

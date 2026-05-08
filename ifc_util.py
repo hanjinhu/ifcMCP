@@ -6,6 +6,9 @@ from pathlib import Path
 
 import numpy as np
 import ifcopenshell as ios
+import ifcopenshell.api.aggregate
+import ifcopenshell.api.context
+import ifcopenshell.api.root
 import ifcopenshell.api.unit
 import ifcopenshell.geom as igm
 
@@ -165,6 +168,22 @@ def create_ifc_model(file_path, schema='IFC4X3', author='AI', organization='Mich
         'file_name': output_path.name
     }
 
+def create_ifc_project(file_path, name='Sample Project'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    project=ifcopenshell.api.root.create_entity(model, ifc_class='IfcProject', name=name)
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'globalId': project.GlobalId,
+        'name': project.Name,
+        'type': project.is_a()
+    }
+
 def set_ifc_units(file_path, length_unit_name='inch', area_unit_name='square inch'):
     output_path=Path(file_path)
     model=open_ifc(str(output_path))
@@ -180,4 +199,134 @@ def set_ifc_units(file_path, length_unit_name='inch', area_unit_name='square inc
         'file_path': str(output_path),
         'length_unit': length_unit_name,
         'area_unit': area_unit_name
+    }
+
+def create_model_context(file_path, context_type='Model'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+    if len(model.by_type('IfcProject'))==0:
+        raise ValueError('IfcProject is required before creating geometric representation contexts')
+
+    context=ifcopenshell.api.context.add_context(model, context_type=context_type)
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'context_type': context.ContextType,
+        'context_identifier': context.ContextIdentifier
+    }
+
+def create_body_context(file_path, parent_context_type='Model', context_identifier='Body', target_view='MODEL_VIEW'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    parent_context=None
+    for context in model.by_type('IfcGeometricRepresentationContext'):
+        if context.ContextType==parent_context_type:
+            parent_context=context
+            break
+
+    if parent_context is None:
+        raise ValueError(f'parent context with type {parent_context_type} is not found')
+
+    context=ifcopenshell.api.context.add_context(
+        model,
+        context_type=parent_context_type,
+        context_identifier=context_identifier,
+        target_view=target_view,
+        parent=parent_context
+    )
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'context_type': context.ContextType,
+        'context_identifier': context.ContextIdentifier,
+        'target_view': context.TargetView
+    }
+
+def create_ifc_site(file_path, name='Project Site'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    site=ifcopenshell.api.root.create_entity(model, ifc_class='IfcSite', name=name)
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'globalId': site.GlobalId,
+        'name': site.Name,
+        'type': site.is_a()
+    }
+
+def create_ifc_bridge(file_path, name='Sample Bridge'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    bridge=ifcopenshell.api.root.create_entity(model, ifc_class='IfcBridge', name=name)
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'globalId': bridge.GlobalId,
+        'name': bridge.Name,
+        'type': bridge.is_a()
+    }
+
+def create_ifc_bridge_part(file_path, predefined_type, name, usage_type='NOTDEFINED'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    bridge_part=ifcopenshell.api.root.create_entity(
+        model,
+        ifc_class='IfcBridgePart',
+        predefined_type=predefined_type,
+        name=name
+    )
+    bridge_part.UsageType=usage_type
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'globalId': bridge_part.GlobalId,
+        'name': bridge_part.Name,
+        'type': bridge_part.is_a(),
+        'predefined_type': predefined_type,
+        'usage_type': usage_type
+    }
+
+def assign_ifc_aggregation(file_path, parent_globalId, child_globalIds):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    parent=model.by_guid(parent_globalId)
+    if parent is None:
+        raise ValueError(f'parent entity with GlobalId {parent_globalId} is not found')
+
+    children=[]
+    for child_globalId in child_globalIds:
+        child=model.by_guid(child_globalId)
+        if child is None:
+            raise ValueError(f'child entity with GlobalId {child_globalId} is not found')
+        children.append(child)
+
+    ifcopenshell.api.aggregate.assign_object(model, relating_object=parent, products=children)
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'parent_globalId': parent_globalId,
+        'child_globalIds': child_globalIds
     }
