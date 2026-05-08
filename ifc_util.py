@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import ifcopenshell as ios
+import ifcopenshell.api.unit
 import ifcopenshell.geom as igm
 
 #==========Util Functions for Geometric Properties============
@@ -162,4 +163,21 @@ def create_ifc_model(file_path, schema='IFC4X3', author='AI', organization='Mich
         'file_path': str(output_path),
         'schema': schema,
         'file_name': output_path.name
+    }
+
+def set_ifc_units(file_path, length_unit_name='inch', area_unit_name='square inch'):
+    output_path=Path(file_path)
+    model=open_ifc(str(output_path))
+    if model is None:
+        raise ValueError('the file is not found or broken')
+
+    length_unit=ifcopenshell.api.unit.add_conversion_based_unit(model, name=length_unit_name)
+    area_unit=ifcopenshell.api.unit.add_conversion_based_unit(model, name=area_unit_name)
+    ifcopenshell.api.unit.assign_unit(model, units=[length_unit, area_unit])
+    model.write(str(output_path))
+
+    return {
+        'file_path': str(output_path),
+        'length_unit': length_unit_name,
+        'area_unit': area_unit_name
     }

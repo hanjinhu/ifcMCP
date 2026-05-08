@@ -223,6 +223,29 @@ def create_ifc_model(
     except Exception as exc:
         return f"error, failed to create IFC model: {exc}"
 
+@mcp.tool()
+def set_ifc_units(
+    file_path:str,
+    length_unit_name:str="inch",
+    area_unit_name:str="square inch"
+):
+    """
+    Set the length and area units of an IFC model.
+
+    Parameters:
+        file_path: path to the IFC file to update
+        length_unit_name: length unit name (e.g., "inch")
+        area_unit_name: area unit name (e.g., "square inch")
+    """
+    try:
+        return ifc_util.set_ifc_units(
+            file_path,
+            length_unit_name=length_unit_name,
+            area_unit_name=area_unit_name
+        )
+    except Exception as exc:
+        return f"error, failed to set IFC units: {exc}"
+
 
 if __name__ == '__main__':
     mcp.run(transport="stdio")  # Default, so transport argument is optional
