@@ -18,6 +18,7 @@ An MCP server that enables LLM agents to talk with IFC (Industry Foundation Clas
 6. get_openings_on_wall
 7. get_space_boundaries
 8. create_ifc_model
+9. set_ifc_units
 
 # how to use it
 1. clone this repo
