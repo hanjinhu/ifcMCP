@@ -430,7 +430,7 @@ def create_bearing_shape_representation(
         model,
         context=context,
         profile=profile,
-        depth=thickness * 0.0254
+        depth=thickness
     )
     profile_representation.RepresentationIdentifier=representation_identifier
 
